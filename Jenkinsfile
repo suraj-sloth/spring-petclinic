@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    node {
+      label 'test'
+    }
+
+  }
   stages {
     stage('Compile') {
       steps {
@@ -25,6 +30,23 @@ pipeline {
     stage('Package') {
       steps {
         sh './mvnw package -DskipTests=true'
+      }
+    }
+
+    stage('QA') {
+      parallel {
+        stage('Deploy') {
+          steps {
+            sh './mvnw spring-boot:run </dev/null &>/dev/null &'
+          }
+        }
+
+        stage('Integration and Performance Tests') {
+          steps {
+            sh './mvnw verify'
+          }
+        }
+
       }
     }
 
